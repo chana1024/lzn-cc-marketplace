@@ -12,7 +12,7 @@ Install infrastructure to your project in **2 minutes** with interactive setup:
 
 ```bash
 cd your-project
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/claude-code-infrastructure-showcase/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chana1024/claude-code-infrastructure-showcase/main/install.sh | bash
 ```
 
 **What happens:**
