@@ -23,12 +23,26 @@ Hooks are scripts that run at specific points in Claude's workflow:
 **Purpose:** Automatically suggests relevant skills based on user prompts and file context
 
 **How it works:**
-1. Reads `skill-rules.json`
+1. Scans and merges `skill-rules.json` from all levels
 2. Matches user prompt against trigger patterns
 3. Checks which files user is working with
 4. Injects skill suggestions into Claude's context
 
 **Why it's essential:** This is THE hook that makes skills auto-activate.
+
+**Multi-Level Skill Loading:**
+
+| Priority | Level | Path |
+|----------|-------|------|
+| 4 (highest) | project | `<project>/.claude/skills/skill-rules.json` |
+| 3 | project-plugin | `<project>/.claude/plugins/*/skills/skill-rules.json` |
+| 2 | global-plugin | `~/.claude/plugins/marketplaces/*/plugins/*/skills/skill-rules.json` |
+| 1 (lowest) | global | `~/.claude/skills/skill-rules.json` |
+
+**Merge Strategy:**
+- Same-name skills: Higher priority overrides lower
+- Different-name skills: All preserved
+- Each skill is tagged with `source` field for debugging
 
 **Integration:**
 ```bash
@@ -63,6 +77,44 @@ npm install
 ```
 
 **Customization:** ✅ None needed - reads skill-rules.json automatically
+
+**Relationship with skill-developer:**
+
+The `skill-activation-prompt` hook and `skill-developer` skill work together as a complete skill management system:
+
+| Component | Role | Location |
+|-----------|------|----------|
+| skill-activation-prompt (hook) | **Runtime engine** - Detects when skills should activate | `hooks/skill-activation-prompt.ts` |
+| skill-developer (skill) | **Development guide** - How to create/configure skills | `skills/skill-developer/` |
+| skill-rules.json | **Configuration** - Defines trigger rules for all skills | `skills/skill-rules.json` |
+
+**How they connect:**
+
+```
+User prompt → skill-activation-prompt hook
+                    ↓
+              Reads skill-rules.json
+                    ↓
+              Matches triggers (keywords, patterns)
+                    ↓
+              Suggests/blocks based on enforcement level
+                    ↓
+              Claude uses Skill tool to load skill content
+```
+
+**When to use each:**
+- **skill-activation-prompt hook**: Install once, runs automatically on every prompt
+- **skill-developer skill**: Use when creating new skills or modifying skill-rules.json
+- **skill-rules.json**: Edit to add/modify skill triggers
+
+**Example flow:**
+1. User types: "create a new skill for database migrations"
+2. Hook detects keywords: "create", "skill" → matches skill-developer triggers
+3. Hook suggests: "RECOMMENDED SKILLS: skill-developer"
+4. Claude loads skill-developer content
+5. Claude guides user through skill creation using skill-developer knowledge
+6. skill-developer save skill in project's skill-rules.json by default. but user can choose to save in other level skill-rules.json
+7. skill-activation-prompt hook will scan all four level skill-rules.json and suggest relevant skills 
 
 ---
 
