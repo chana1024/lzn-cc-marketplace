@@ -239,6 +239,10 @@ async function main() {
                 hookOutput.reason = `Critical skill required: ${critical.filter(s => s.config.enforcement === 'block').map(s => s.name).join(', ')}. Please use the skill tool to invoke these skills first.`;
             }
 
+            // Output structured output
+            //hooks mixing exit code 2 with the advanced json api had mismatching behavior when used inline or via a plugin. 
+            //When mixed, inline hooks respected the advanced JSON behavior and prompted Claude with the reason field in the JSON
+             //Plugin hooks on the other hand, respected the exit code 2 and stopped continuation completely
             console.log(JSON.stringify(hookOutput));
         }
 
